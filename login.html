@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Career Lab — 로그인</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple: #b44fff;
+      --purple-dim: #7a2fb8;
+      --text: #e0e0e0;
+      --dim: #888;
+      --bg: #06040e;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      overflow-x: hidden;
+    }
+
+    #stars-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 48px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .nav-logo {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      color: var(--purple);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .nav-logo .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--purple);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ─── CENTER LAYOUT ─── */
+    .page {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 66px - 48px);
+      padding: 40px 24px;
+    }
+
+    /* ─── LOGIN CARD ─── */
+    .login-card {
+      width: 100%;
+      max-width: 440px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.02);
+      padding: 52px 48px;
+      position: relative;
+    }
+
+    /* top purple accent line */
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(to right, var(--purple), transparent);
+    }
+
+    .card-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      color: var(--purple);
+      margin-bottom: 28px;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--dim);
+      line-height: 1.7;
+      margin-bottom: 40px;
+      word-break: keep-all;
+    }
+
+    /* ─── GOOGLE BUTTON ─── */
+    .btn-google {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      padding: 15px 24px;
+      background: #fff;
+      color: #1a1a1a;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+      margin-bottom: 16px;
+    }
+
+    .btn-google:hover {
+      background: #f0f0f0;
+      transform: translateY(-1px);
+    }
+
+    .btn-google svg {
+      flex-shrink: 0;
+    }
+
+    /* ─── DIVIDER ─── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+    }
+
+    .divider-line {
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .divider-text {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      color: var(--dim);
+    }
+
+    /* ─── EMAIL FORM ─── */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      color: var(--dim);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #fff;
+      font-size: 14px;
+      font-family: 'Noto Sans KR', sans-serif;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input::placeholder { color: rgba(255,255,255,0.2); }
+
+    .form-input:focus {
+      border-color: rgba(180,79,255,0.5);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--purple);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 0 20px rgba(180,79,255,0.25);
+    }
+
+    .btn-submit:hover {
+      background: #c76fff;
+      transform: translateY(-1px);
+      box-shadow: 0 0 30px rgba(180,79,255,0.45);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.5; cursor: not-allowed; transform: none;
+    }
+
+    .field-error {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px; letter-spacing: 0.1em;
+      color: #ff4455; margin-top: 6px; min-height: 14px;
+    }
+
+    .loading-dots::after {
+      content: ''; animation: dots 1.2s step-end infinite;
+    }
+
+    @keyframes dots {
+      0%   { content: '.'; }
+      33%  { content: '..'; }
+      66%  { content: '...'; }
+      100% { content: ''; }
+    }
+
+    /* ─── BOTTOM NOTE ─── */
+    .card-note {
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.2);
+      line-height: 1.9;
+      text-align: center;
+    }
+
+    /* ─── FOOTER ─── */
+    .footer-bar {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      justify-content: space-between;
+      padding: 14px 48px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.25);
+    }
+
+    .footer-left { display: flex; gap: 28px; }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom, transparent, transparent 2px,
+        rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="dot"></div>
+    AI_CAREER_LAB
+  </a>
+</nav>
+
+<div class="page">
+  <div class="login-card">
+    <div class="card-tag">AUTH_PORTAL //</div>
+    <div class="card-title">시작하기</div>
+    <p class="card-desc">로그인하면 AI가 내 기술 스택에 맞는 공고를<br>매주 월요일 아침에 자동으로 보내드립니다.</p>
+
+    <!-- Google OAuth -->
+    <a href="https://aicareerlab.duckdns.org/oauth2/authorization/google" class="btn-google">
+      <svg width="18" height="18" viewBox="0 0 18 18">
+        <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+        <path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/>
+        <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z"/>
+      </svg>
+      Google로 시작하기
+    </a>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-text">OR</span>
+      <div class="divider-line"></div>
+    </div>
+
+    <!-- Email/PW -->
+    <div class="form-group">
+      <label class="form-label">EMAIL</label>
+      <input class="form-input" id="emailInput" type="email" placeholder="your@email.com" />
+      <div class="field-error" id="emailError"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">PASSWORD</label>
+      <input class="form-input" id="passwordInput" type="password" placeholder="••••••••" />
+      <div class="field-error" id="passwordError"></div>
+    </div>
+    <button class="btn-submit" id="loginBtn" onclick="handleLogin()">이메일로 로그인</button>
+
+    <div class="card-note">
+      NO_CREDIT_CARD &nbsp;//&nbsp; FREE_FOREVER<br>
+      계정이 없으신가요? 첫 로그인 시 자동으로 생성됩니다.
+    </div>
+  </div>
+</div>
+
+<div class="footer-bar">
+  <div class="footer-left">
+    <span>NODE_004</span>
+    <span>TX_PENDING</span>
+  </div>
+  <div>© 2024 AI_CAREER_LAB</div>
+</div>
+
+<script>
+  const canvas = document.getElementById('stars-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  const stars = [];
+
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function createStar() {
+    return { x: Math.random()*W, y: Math.random()*H, r: rand(0.3,1.6),
+      speed: rand(0.08,0.35), opacity: rand(0.2,0.9),
+      ts: rand(0.005,0.02), td: Math.random()>0.5?1:-1 };
+  }
+  function init() { resize(); stars.length=0; for(let i=0;i<180;i++) stars.push(createStar()); }
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    for(const s of stars) {
+      s.opacity += s.ts*s.td;
+      if(s.opacity>=0.95||s.opacity<=0.1) s.td*=-1;
+      s.y+=s.speed; if(s.y>H+4){s.y=-4;s.x=Math.random()*W;}
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,255,255,${s.opacity})`; ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize', resize);
+  init(); draw();
+
+  const API = 'https://aicareerlab.duckdns.org';
+
+  /* ── 이미 로그인된 경우 바로 이동 ── */
+  fetch(`${API}/api/auth/me`, { credentials: 'include' })
+    .then(res => res.ok ? res.json() : null)
+    .then(user => {
+      if (!user) return;
+      return fetch(`${API}/api/profile`, { credentials: 'include' })
+        .then(res => { window.location.href = res.ok ? 'dashboard.html' : 'setup.html'; });
+    }).catch(() => {});
+
+  /* ── 이메일 로그인 ── */
+  async function handleLogin() {
+    const email = document.getElementById('emailInput').value.trim();
+    const password = document.getElementById('passwordInput').value;
+    const emailErr = document.getElementById('emailError');
+    const passErr = document.getElementById('passwordError');
+    const btn = document.getElementById('loginBtn');
+
+    emailErr.textContent = '';
+    passErr.textContent = '';
+
+    if (!email) { emailErr.textContent = 'ERR: 이메일을 입력해주세요'; return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { emailErr.textContent = 'ERR: 올바른 이메일 형식이 아닙니다'; return; }
+    if (!password) { passErr.textContent = 'ERR: 비밀번호를 입력해주세요'; return; }
+    if (password.length < 6) { passErr.textContent = 'ERR: 비밀번호는 6자 이상이어야 합니다'; return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-dots">인증 중</span>';
+
+    try {
+      const res = await fetch(`${API}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        const profileRes = await fetch(`${API}/api/profile`, { credentials: 'include' });
+        window.location.href = profileRes.ok ? 'dashboard.html' : 'setup.html';
+      } else {
+        passErr.textContent = 'ERR: ' + (data.message || '로그인 실패');
+        btn.disabled = false;
+        btn.innerHTML = '이메일로 로그인';
+      }
+    } catch (e) {
+      passErr.textContent = 'ERR: 서버에 연결할 수 없습니다';
+      btn.disabled = false;
+      btn.innerHTML = '이메일로 로그인';
+    }
+  }
+
+  /* ── 엔터키로 로그인 ── */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleLogin();
+  });
+</script>
+</body>
+</html>
