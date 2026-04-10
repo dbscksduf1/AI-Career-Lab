@@ -1,0 +1,21 @@
+### Gradle
+.gradle/
+build/
+
+### IntelliJ
+.idea/
+*.iml
+*.iws
+out/
+
+### Spring Boot
+src/main/resources/application.yml
+src/main/resources/application-*.yml
+
+### Logs
+*.log
+logs/
+
+### OS
+.DS_Store
+Thumbs.db
