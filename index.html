@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Career Lab</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple: #b44fff;
+      --purple-dim: #7a2fb8;
+      --red: #ff4455;
+      --green: #39ff14;
+      --text: #e0e0e0;
+      --dim: #888;
+      --bg: #06040e;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ─── STAR CANVAS ─── */
+    #stars-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 48px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .nav-left {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      color: var(--purple);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-left .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--purple);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .nav-right {
+      display: flex;
+      gap: 36px;
+    }
+
+    .nav-right a {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-right a:hover { color: var(--text); }
+
+    /* ─── HERO LAYOUT ─── */
+    .hero {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: calc(100vh - 66px);
+      padding: 60px 192px 40px;
+      gap: 40px;
+    }
+
+    .hero-left {
+      max-width: 580px;
+      flex: 1;
+    }
+
+    /* ─── BADGE ─── */
+    .badge {
+      display: inline-block;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--purple);
+      border: 1px solid var(--purple-dim);
+      padding: 4px 10px;
+      margin-bottom: 32px;
+      background: rgba(180, 79, 255, 0.07);
+    }
+
+    /* ─── HEADING ─── */
+    h1 {
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      font-weight: 900;
+      line-height: 1.2;
+      color: #fff;
+      margin-bottom: 28px;
+      word-break: keep-all;
+    }
+
+    /* ─── BODY TEXT ─── */
+    .hero-desc {
+      font-size: 15px;
+      line-height: 1.9;
+      color: #aaa;
+      margin-bottom: 44px;
+      word-break: keep-all;
+    }
+
+    /* ─── CTA ROW ─── */
+    .cta-row {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      margin-bottom: 60px;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      background: #fff;
+      color: #000;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 16px 32px;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-primary:hover {
+      background: #ddd;
+      transform: translateY(-1px);
+    }
+
+    .next-batch {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+      line-height: 1.8;
+    }
+
+    .next-batch span {
+      display: block;
+      color: var(--purple);
+      font-size: 11px;
+    }
+
+    /* ─── STATS ─── */
+    .stats {
+      display: flex;
+      gap: 0;
+      border: 1px solid rgba(255,255,255,0.1);
+      max-width: 480px;
+    }
+
+    .stat {
+      flex: 1;
+      padding: 20px 28px;
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .stat:last-child { border-right: none; }
+
+    .stat-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      color: var(--dim);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 28px;
+      color: #fff;
+      font-weight: 400;
+    }
+
+    .stat-value sup {
+      font-size: 14px;
+      vertical-align: top;
+      margin-top: 6px;
+      display: inline-block;
+    }
+
+    /* ─── RIGHT PANEL: ORBS ─── */
+    .hero-right {
+      flex: 0 0 300px;
+      height: 480px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* orbit rings */
+    .orbit-wrap {
+      position: relative;
+      width: 340px;
+      height: 340px;
+    }
+
+    /* the slowly rotating arc */
+    .arc-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2.5px solid transparent;
+      border-top-color: var(--purple);
+      border-right-color: rgba(180,79,255,0.35);
+      animation: spin-slow 8s linear infinite;
+      box-shadow: 0 0 18px rgba(180,79,255,0.5), inset 0 0 14px rgba(180,79,255,0.15);
+    }
+
+    .arc-ring-2 {
+      position: absolute;
+      inset: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(180,79,255,0.18);
+      animation: spin-slow 14s linear infinite reverse;
+    }
+
+    .arc-ring-3 {
+      position: absolute;
+      inset: 70px;
+      border-radius: 50%;
+      border: 1px solid rgba(180,79,255,0.1);
+      animation: spin-slow 20s linear infinite;
+    }
+
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* center glow dot */
+    .orb-center {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--purple);
+      box-shadow: 0 0 30px 10px rgba(180,79,255,0.4);
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    /* moving dot on arc */
+    .arc-dot {
+      position: absolute;
+      top: -5px; left: 50%;
+      transform: translateX(-50%);
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: var(--purple);
+      box-shadow: 0 0 12px 4px rgba(180,79,255,0.8);
+    }
+
+    /* labels around the orb */
+    .orb-label {
+      position: absolute;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      color: var(--dim);
+      white-space: nowrap;
+    }
+
+    .label-top    { top: -48px; left: 50%; transform: translateX(-50%); }
+    .label-left   { left: -80px; top: 50%; transform: translateY(-50%); text-align: right; }
+    .label-bottom { bottom: -52px; left: 50%; transform: translateX(-50%); text-align: center; }
+
+    .orb-label .val {
+      display: block;
+      font-size: 22px;
+      color: #fff;
+      margin: 4px 0 2px;
+    }
+
+    .orb-label .tag {
+      color: var(--purple);
+      font-size: 8px;
+    }
+
+    /* ─── SECTION DIVIDER ─── */
+    .section-divider {
+      position: relative;
+      z-index: 5;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ─── PROBLEM SECTION ─── */
+    .problem {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      min-height: 100vh;
+      padding: 70px 192px 70px;
+      gap: 80px;
+    }
+
+    .problem-left {
+      flex: 0 0 260px;
+    }
+
+    .section-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      color: var(--red);
+      border: 1px solid rgba(255,68,85,0.35);
+      display: inline-block;
+      padding: 4px 10px;
+      margin-bottom: 28px;
+      background: rgba(255,68,85,0.05);
+    }
+
+    h2 {
+      font-size: clamp(1.6rem, 2.8vw, 2.2rem);
+      font-weight: 900;
+      line-height: 1.35;
+      color: #fff;
+      word-break: keep-all;
+      margin-bottom: 32px;
+    }
+
+    .v-line {
+      width: 1px;
+      height: 220px;
+      background: linear-gradient(to bottom, rgba(255,68,85,0.5), transparent);
+      margin-top: 8px;
+    }
+
+    .problem-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .problem-card {
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 28px 32px;
+      position: relative;
+      background: rgba(255,255,255,0.02);
+      transition: border-color 0.3s, background 0.3s;
+      overflow: hidden;
+    }
+
+    .problem-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--red);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .problem-card:hover {
+      border-color: rgba(255,68,85,0.3);
+      background: rgba(255,68,85,0.04);
+    }
+
+    .problem-card:hover::before { opacity: 1; }
+
+    .card-header {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .card-num {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: var(--red);
+      flex-shrink: 0;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.4;
+      word-break: keep-all;
+    }
+
+    .card-body {
+      font-size: 13.5px;
+      line-height: 1.85;
+      color: #888;
+      padding-left: 44px;
+      word-break: keep-all;
+    }
+
+    .card-status {
+      position: absolute;
+      top: 20px; right: 24px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.14em;
+      color: var(--red);
+      animation: blink 2.4s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .error-log {
+      position: relative;
+      z-index: 5;
+      text-align: right;
+      padding: 0 192px 40px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: rgba(255,68,85,0.25);
+      line-height: 1.9;
+    }
+
+    /* ─── SERVICE SECTION ─── */
+    .service {
+      position: relative;
+      z-index: 5;
+      min-height: 100vh;
+      padding: 80px 192px 80px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .service-header {
+      margin-bottom: 60px;
+    }
+
+    .service-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      color: var(--purple);
+      border: 1px solid rgba(180,79,255,0.35);
+      display: inline-block;
+      padding: 4px 10px;
+      margin-bottom: 20px;
+      background: rgba(180,79,255,0.05);
+    }
+
+    .service-header h2 {
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      font-weight: 900;
+      color: #fff;
+      word-break: keep-all;
+    }
+
+    .service-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .service-card {
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 36px 36px 32px;
+      position: relative;
+      background: rgba(255,255,255,0.015);
+      transition: border-color 0.3s, background 0.3s;
+      overflow: hidden;
+    }
+
+    .service-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(to right, var(--purple), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .service-card:hover {
+      border-color: rgba(180,79,255,0.25);
+      background: rgba(180,79,255,0.04);
+    }
+
+    .service-card:hover::after { opacity: 1; }
+
+    .service-num {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      color: var(--purple);
+      margin-bottom: 16px;
+    }
+
+    .service-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 14px;
+      word-break: keep-all;
+      line-height: 1.4;
+    }
+
+    .service-body {
+      font-size: 13.5px;
+      line-height: 1.85;
+      color: #777;
+      word-break: keep-all;
+    }
+
+    .service-body em {
+      color: #aaa;
+      font-style: normal;
+    }
+
+    .service-metric {
+      display: inline-block;
+      margin-top: 16px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: var(--purple);
+      border-left: 2px solid var(--purple);
+      padding-left: 10px;
+    }
+
+    /* ─── HOW IT WORKS ─── */
+    .how {
+      position: relative;
+      z-index: 5;
+      min-height: 100vh;
+      padding: 80px 192px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .how-header {
+      margin-bottom: 72px;
+    }
+
+    .how-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      color: var(--purple);
+      border: 1px solid rgba(180,79,255,0.35);
+      display: inline-block;
+      padding: 4px 10px;
+      margin-bottom: 20px;
+      background: rgba(180,79,255,0.05);
+    }
+
+    .how-header h2 {
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .how-steps {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0;
+      position: relative;
+    }
+
+    /* connecting line: from center of circle 1 to center of circle 3 */
+    .how-steps::before {
+      content: '';
+      position: absolute;
+      top: 35px;
+      left: 36px;
+      right: calc(100% / 3 - 36px);
+      height: 1px;
+      background: linear-gradient(to right,
+        rgba(180,79,255,0.7),
+        rgba(180,79,255,0.4),
+        rgba(180,79,255,0.7)
+      );
+      z-index: 0;
+    }
+
+    .how-step {
+      position: relative;
+      z-index: 1;
+      padding: 0 36px 0 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .how-step:last-child { padding-right: 0; }
+
+    .step-circle {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      border: 1px solid rgba(180,79,255,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+      background: #0d0a1a;
+      position: relative;
+      z-index: 2;
+    }
+
+    .step-circle::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 1px solid rgba(180,79,255,0.12);
+    }
+
+    .step-num {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 18px;
+      color: var(--purple);
+      letter-spacing: 0;
+    }
+
+    .step-phase {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      color: var(--purple);
+      margin-bottom: 14px;
+    }
+
+    .step-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 14px;
+      word-break: keep-all;
+      line-height: 1.4;
+    }
+
+    .step-body {
+      font-size: 13.5px;
+      line-height: 1.85;
+      color: #777;
+      word-break: keep-all;
+    }
+
+    /* ─── TESTIMONIALS ─── */
+    .testimonials {
+      position: relative;
+      z-index: 5;
+      min-height: 100vh;
+      padding: 80px 192px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .testimonials-header {
+      margin-bottom: 60px;
+    }
+
+    .testimonials-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      color: var(--purple);
+      border: 1px solid rgba(180,79,255,0.35);
+      display: inline-block;
+      padding: 4px 10px;
+      margin-bottom: 20px;
+      background: rgba(180,79,255,0.05);
+    }
+
+    .testimonials-header h2 {
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .testi-card {
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 40px 36px 32px;
+      position: relative;
+      background: rgba(255,255,255,0.015);
+      transition: border-color 0.3s, background 0.3s;
+    }
+
+    .testi-card:hover {
+      border-color: rgba(180,79,255,0.25);
+      background: rgba(180,79,255,0.03);
+    }
+
+    /* big quotation mark */
+    .testi-card::before {
+      content: '"';
+      position: absolute;
+      top: 20px; left: 32px;
+      font-size: 72px;
+      line-height: 1;
+      color: rgba(180,79,255,0.15);
+      font-family: Georgia, serif;
+      pointer-events: none;
+    }
+
+    .testi-quote {
+      font-size: 14.5px;
+      line-height: 1.9;
+      color: #aaa;
+      word-break: keep-all;
+      margin-bottom: 28px;
+      padding-top: 24px;
+    }
+
+    .testi-divider {
+      width: 32px;
+      height: 1px;
+      background: rgba(180,79,255,0.5);
+      margin-bottom: 20px;
+    }
+
+    .testi-name {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .testi-meta {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--purple);
+    }
+
+    /* ─── CTA ─── */
+    .cta-section {
+      position: relative;
+      z-index: 5;
+      padding: 120px 192px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(180,79,255,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      color: var(--purple);
+      border: 1px solid rgba(180,79,255,0.35);
+      display: inline-block;
+      padding: 4px 10px;
+      margin-bottom: 32px;
+      background: rgba(180,79,255,0.05);
+    }
+
+    .cta-section h2 {
+      font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.3;
+      max-width: 680px;
+      margin-bottom: 20px;
+      word-break: keep-all;
+    }
+
+    .cta-desc {
+      font-size: 15px;
+      line-height: 1.85;
+      color: #777;
+      max-width: 480px;
+      margin-bottom: 48px;
+      word-break: keep-all;
+    }
+
+    .btn-cta {
+      display: inline-block;
+      background: var(--purple);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 18px 40px;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 0 28px rgba(180,79,255,0.35);
+      margin-bottom: 16px;
+    }
+
+    .btn-cta:hover {
+      background: #c76fff;
+      transform: translateY(-2px);
+      box-shadow: 0 0 40px rgba(180,79,255,0.55);
+    }
+
+    .cta-note {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      color: rgba(255,255,255,0.2);
+    }
+
+    /* ─── SERVICE ICONS ─── */
+    .service-icon {
+      width: 40px; height: 40px;
+      margin-bottom: 20px;
+      color: var(--purple);
+      opacity: 0.7;
+    }
+
+    /* ─── PLATFORM BADGES (Problem) ─── */
+    .platform-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .platform-badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: rgba(255,68,85,0.6);
+      border: 1px solid rgba(255,68,85,0.2);
+      padding: 4px 10px;
+      background: rgba(255,68,85,0.04);
+    }
+
+    /* ─── TIME VISUAL (Problem) ─── */
+    .time-visual {
+      margin-top: 28px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+    }
+
+    .time-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .time-bar-label { width: 60px; color: rgba(255,68,85,0.5); font-size: 8px; }
+
+    .time-bar-track {
+      flex: 1;
+      height: 3px;
+      background: rgba(255,255,255,0.06);
+      position: relative;
+    }
+
+    .time-bar-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: rgba(255,68,85,0.5);
+      animation: bar-grow 1.5s ease-out forwards;
+    }
+
+    @keyframes bar-grow {
+      from { width: 0; }
+    }
+
+    .time-bar-val { font-size: 8px; color: rgba(255,68,85,0.7); width: 28px; text-align: right; }
+
+    /* ─── TESTI AVATAR ─── */
+    .testi-footer {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .testi-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(180,79,255,0.35);
+      background: rgba(180,79,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px;
+      color: var(--purple);
+      flex-shrink: 0;
+    }
+
+    .testi-info { flex: 1; }
+
+    .testi-stars {
+      display: flex;
+      gap: 3px;
+      margin-bottom: 6px;
+    }
+
+    .star {
+      width: 10px; height: 10px;
+      color: var(--purple);
+    }
+
+    /* ─── HOW STEP PREVIEW CARDS ─── */
+    .step-preview {
+      margin-top: 20px;
+      border: 1px solid rgba(180,79,255,0.12);
+      padding: 12px 14px;
+      background: rgba(180,79,255,0.03);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      color: rgba(180,79,255,0.5);
+      line-height: 1.8;
+    }
+
+    .step-preview .hi { color: rgba(180,79,255,0.85); }
+
+    /* ─── FOOTER BAR ─── */
+    .footer-bar {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      justify-content: space-between;
+      padding: 14px 48px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.25);
+    }
+
+    .footer-left { display: flex; gap: 28px; }
+
+    /* ─── SCANLINE overlay ─── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.04) 2px,
+        rgba(0,0,0,0.04) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <div class="dot"></div>
+    CORE_SYSTEM: ACTIVE // 12.04.24
+  </div>
+  <div class="nav-right">
+    <a href="#service">AI_SOLUTIONS</a>
+    <a href="#how">HOW_IT_WORKS</a>
+    <a href="#cta">시작하기</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="badge">AUTOMATION_ENGINE_V2</div>
+
+    <h1>매일 3시간,<br>구직활동에 쓰고 계시죠?</h1>
+
+    <p class="hero-desc">
+      취업준비생 하루 평균 구직활동 시간은 평균 3시간이라고 합니다. 그 시간,<br>
+      이제 AI가 대신합니다. 매주 수백 개의 공고를 검색하는 대신 — 내 기술 스<br>
+      택에 맞는 공고만 골라 월요일 아침에 받아보세요.
+    </p>
+
+    <div class="cta-row">
+      <a href="login.html" class="btn-primary">무료로 시작하기 →</a>
+      <div class="next-batch">
+        NEXT BATCH:<br>
+        <span>MONDAY 09:00 AM</span>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">AI ACCURACY</div>
+        <div class="stat-value">99.2<sup>%</sup></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">TIME SAVED/DAY</div>
+        <div class="stat-value">180<sup style="font-size:12px;margin-top:10px">min</sup></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT ORB -->
+  <div class="hero-right">
+    <div class="orbit-wrap">
+      <div class="arc-ring">
+        <div class="arc-dot"></div>
+      </div>
+      <div class="arc-ring-2"></div>
+      <div class="arc-ring-3"></div>
+      <div class="orb-center"></div>
+
+      <!-- labels -->
+      <div class="orb-label label-top">
+        TIME_COMPRESSION
+      </div>
+      <div class="orb-label label-left">
+        LATENCY<br>
+        <span class="val">0.04ms</span>
+        <span class="tag">SYSTEM_OPTIMIZED</span>
+      </div>
+      <div class="orb-label label-bottom">
+        [03:00:00] → [00:00:01]
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM SECTION -->
+<div class="section-divider"></div>
+
+<section class="problem">
+
+  <div class="problem-left">
+    <div class="section-tag">ERROR_LOG // 03</div>
+    <h2>지금 이런 경험<br>하고 있지<br>않나요?</h2>
+    <div class="v-line"></div>
+
+    <div class="time-visual">
+      DAILY_TIME_COST
+      <div class="time-bar-row">
+        <span class="time-bar-label">검색</span>
+        <div class="time-bar-track"><div class="time-bar-fill" style="width:80%"></div></div>
+        <span class="time-bar-val">2.4h</span>
+      </div>
+      <div class="time-bar-row">
+        <span class="time-bar-label">비교</span>
+        <div class="time-bar-track"><div class="time-bar-fill" style="width:55%"></div></div>
+        <span class="time-bar-val">1.6h</span>
+      </div>
+      <div class="time-bar-row">
+        <span class="time-bar-label">정리</span>
+        <div class="time-bar-track"><div class="time-bar-fill" style="width:30%"></div></div>
+        <span class="time-bar-val">0.9h</span>
+      </div>
+    </div>
+
+    <div class="platform-badges">
+      <span class="platform-badge">사람인</span>
+      <span class="platform-badge">원티드</span>
+    </div>
+  </div>
+
+  <div class="problem-right">
+
+    <div class="problem-card">
+      <div class="card-status">ERR_001 ▮</div>
+      <div class="card-header">
+        <span class="card-num">01 //</span>
+        <span class="card-title">하루 몇시간씩, 공고 찾는 데 쓰고 있습니다</span>
+      </div>
+      <p class="card-body">
+        사람인, 원티드... 플랫폼마다 따로 검색하고, 같은 조건을 반복 입력하는 데 하루에 2~3시간이 사라집니다.
+      </p>
+    </div>
+
+    <div class="problem-card">
+      <div class="card-status">ERR_002 ▮</div>
+      <div class="card-header">
+        <span class="card-num">02 //</span>
+        <span class="card-title">검색해도 맞는 공고가 없습니다</span>
+      </div>
+      <p class="card-body">
+        "개발자"로 검색하면 회사별로 요구하는 다양한 스킬 때문에 적합한 공고를 찾기 힘듭니다. 결국 하나씩 열어보다 지칩니다.
+      </p>
+    </div>
+
+    <div class="problem-card">
+      <div class="card-status">ERR_003 ▮</div>
+      <div class="card-header">
+        <span class="card-num">03 //</span>
+        <span class="card-title">좋은 공고는 이미 마감됐습니다</span>
+      </div>
+      <p class="card-body">
+        바쁜 하루를 보내다 보면 지원할 타이밍을 놓치기 일쑤입니다.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<div class="error-log">
+  SYSTEM_ANOMALY DETECTED<br>
+  INEFFICIENCY_RATE: 87.4%<br>
+  MANUAL_SEARCH: DEPRECATED<br>
+  RECOMMENDING: AI_OVERRIDE
+</div>
+
+<!-- SERVICE SECTION -->
+<section class="service" id="service">
+
+  <div class="service-header">
+    <div class="service-tag">SYSTEM_OVERVIEW // 04</div>
+    <h2>AI가 대신 찾아드립니다</h2>
+  </div>
+
+  <div class="service-grid">
+
+    <div class="service-card">
+      <svg class="service-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="4" y="10" width="32" height="22" rx="2"/>
+        <path d="M4 16h32M10 22h12M10 27h8"/>
+        <circle cx="30" cy="24.5" r="3.5" stroke-width="1.2"/>
+        <path d="M32.5 27l3 3" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <div class="service-num">MODULE_01 //</div>
+      <div class="service-title">자연어로 조건 입력</div>
+      <p class="service-body">
+        <em>"Java, Spring 백엔드 개발자, 서울 근무 원해요"</em>처럼 말하듯 입력하면
+        AI가 직무·기술 스택·지역을 자동으로 분류합니다.
+        복잡한 필터 설정 없이 30초면 끝납니다.
+      </p>
+      <span class="service-metric">SETUP_TIME: 30sec</span>
+    </div>
+
+    <div class="service-card">
+      <svg class="service-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="4" y="4" width="14" height="14" rx="1.5"/>
+        <rect x="22" y="4" width="14" height="14" rx="1.5"/>
+        <rect x="4" y="22" width="14" height="14" rx="1.5"/>
+        <rect x="22" y="22" width="14" height="14" rx="1.5"/>
+        <path d="M18 11h4M11 18v4M29 18v4M18 29h4" stroke-linecap="round"/>
+      </svg>
+      <div class="service-num">MODULE_02 //</div>
+      <div class="service-title">2개 플랫폼 공고를 한 번에</div>
+      <p class="service-body">
+        사람인, 원티드 채용사이트의 공고를 자동으로 수집합니다.
+        직접 방문하지 않아도 공고를 놓치지 않습니다.
+      </p>
+      <span class="service-metric">PLATFORMS: 2 INTEGRATED</span>
+    </div>
+
+    <div class="service-card">
+      <svg class="service-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M6 32V24M14 32V18M22 32V22M30 32V14" stroke-linecap="round"/>
+        <circle cx="30" cy="11" r="3" fill="currentColor" opacity="0.3"/>
+        <path d="M6 24l8-6 8 4 8-8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="service-num">MODULE_03 //</div>
+      <div class="service-title">공고마다 적합도 점수와 3줄 요약</div>
+      <p class="service-body">
+        긴 공고를 전부 읽는 대신 — 지원자격, 요구사항, 우대사항, 복지를 3줄로 요약하고
+        내 프로파일과의 매칭 점수를 함께 제공합니다.
+      </p>
+      <span class="service-metric">REVIEW_TIME: 8min → 1min</span>
+    </div>
+
+    <div class="service-card">
+      <svg class="service-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="4" y="10" width="32" height="22" rx="2"/>
+        <path d="M4 14l16 11 16-11" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="service-num">MODULE_04 //</div>
+      <div class="service-title">매주 월요일, 이메일로 자동 도착</div>
+      <p class="service-body">
+        상위 10개 추천 공고가 월요일 오전 9시에 이메일로 옵니다.
+        채용 사이트에 접속할 필요가 없습니다.
+      </p>
+      <span class="service-metric">DELIVERY: MON 09:00 AUTO</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+
+  <div class="how-header">
+    <div class="how-tag">PROCESS_FLOW // 03</div>
+    <h2>3단계면 됩니다</h2>
+  </div>
+
+  <div class="how-steps">
+
+    <div class="how-step">
+      <div class="step-circle">
+        <span class="step-num">01</span>
+      </div>
+      <div class="step-phase">STEP_01 // 30SEC</div>
+      <div class="step-title">조건 입력</div>
+      <p class="step-body">
+        원하는 직무와 기술 스택을 자연어로 입력합니다.
+        AI가 결과를 확인하고 저장하면 끝입니다.
+      </p>
+      <div class="step-preview">
+        <span class="hi">&gt; INPUT:</span> "Java 백엔드, 서울"<br>
+        <span class="hi">&gt; PARSED:</span> JOB=backend<br>
+        <span class="hi">&gt; STACK:</span> [Java, Spring]<br>
+        <span class="hi">&gt; REGION:</span> Seoul ✓
+      </div>
+    </div>
+
+    <div class="how-step">
+      <div class="step-circle">
+        <span class="step-num">02</span>
+      </div>
+      <div class="step-phase">STEP_02 // AUTO</div>
+      <div class="step-title">AI가 공고를 분석합니다</div>
+      <p class="step-body">
+        매일 여러 플랫폼에서 공고를 수집하고,
+        내 조건과 비교해 적합도를 계산합니다.
+      </p>
+      <div class="step-preview">
+        <span class="hi">SCAN</span> saramin ···· 312건<br>
+        <span class="hi">SCAN</span> wanted ····· 187건<br>
+        <span class="hi">MATCH</span> score &gt; 80 → <span class="hi">10건</span><br>
+        <span class="hi">STATUS:</span> READY ✓
+      </div>
+    </div>
+
+    <div class="how-step">
+      <div class="step-circle">
+        <span class="step-num">03</span>
+      </div>
+      <div class="step-phase">STEP_03 // MON 09:00</div>
+      <div class="step-title">월요일 아침에 받아보세요</div>
+      <p class="step-body">
+        이메일에서 요약과 점수를 확인하고,
+        마음에 드는 공고에 바로 지원합니다.
+      </p>
+      <div class="step-preview">
+        <span class="hi">FROM:</span> ai@careerlab.io<br>
+        <span class="hi">SUBJ:</span> 이번 주 추천 공고 10건<br>
+        <span class="hi">MATCH#1:</span> 95점 · 카카오<br>
+        <span class="hi">MATCH#2:</span> 91점 · 토스
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+
+  <div class="testimonials-header">
+    <div class="testimonials-tag">USER_REPORT // 02</div>
+    <h2>실제 사용자 후기</h2>
+  </div>
+
+  <div class="testimonials-grid">
+
+    <div class="testi-card">
+      <p class="testi-quote">
+        이직 준비하면서 매일 채용 사이트 들어가는 게 습관이었는데, 이제 월요일 이메일 하나로 한 주치 공고를 정리합니다. 적합도 점수가 생각보다 정확해서 실제로 지원한 3곳 중 2곳에서 서류 통과했어요.
+      </p>
+      <div class="testi-divider"></div>
+      <div class="testi-footer">
+        <div class="testi-avatar">JH</div>
+        <div class="testi-info">
+          <div class="testi-stars">
+            <svg class="star" viewBox="0 0 10 10" fill="currentColor"><polygon points="5,1 6.2,3.8 9,3.8 6.9,5.7 7.6,8.5 5,6.9 2.4,8.5 3.1,5.7 1,3.8 3.8,3.8"/></svg>
+            <svg class="star" viewBox="0 0 10 10" fill="currentColor"><polygon points="5,1 6.2,3.8 9,3.8 6.9,5.7 7.6,8.5 5,6.9 2.4,8.5 3.1,5.7 1,3.8 3.8,3.8"/></svg>
+            <svg class="star" viewBox="0 0 10 10" fill="currentColor"><polygon points="5,1 6.2,3.8 9,3.8 6.9,5.7 7.6,8.5 5,6.9 2.4,8.5 3.1,5.7 1,3.8 3.8,3.8"/></svg>
+            <svg class="star" viewBox="0 0 10 10" fill="currentColor"><polygon points="5,1 6.2,3.8 9,3.8 6.9,5.7 7.6,8.5 5,6.9 2.4,8.5 3.1,5.7 1,3.8 3.8,3.8"/></svg>
+            <svg class="star" viewBox="0 0 10 10" fill="currentColor"><polygon points="5,1 6.2,3.8 9,3.8 6.9,5.7 7.6,8.5 5,6.9 2.4,8.5 3.1,5.7 1,3.8 3.8,3.8"/></svg>
+          </div>
+          <div class="testi-name">김지훈</div>
+          <div class="testi-meta">백엔드 개발자 4년차 // 이직 준비 중</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testi-card">
+      <p class="testi-quote">
+        졸업 앞두고 공고를 어디서 찾아야 할지도 몰랐어요. 기술 스택 입력하니까 신입 공고만 골라서 와서 좋았고, 공고 요약 덕분에 지원 여부를 훨씬 빠르게 판단할 수 있었습니다.
+      </p>
+      <div class="testi-divider"></div>
+      <div class="testi-footer">
+        <div class="testi-avatar">SY</div>
+        <div class="testi-info">
+          <div class="testi-stars">
+            <svg class="star" viewBox="0 0 10 10" fill="currentColor"><polygon points="5,1 6.2,3.8 9,3.8 6.9,5.7 7.6,8.5 5,6.9 2.4,8.5 3.1,5.7 1,3.8 3.8,3.8"/></svg>
+            <svg class="star" viewBox="0 0 10 10" fill="currentColor"><polygon points="5,1 6.2,3.8 9,3.8 6.9,5.7 7.6,8.5 5,6.9 2.4,8.5 3.1,5.7 1,3.8 3.8,3.8"/></svg>
+            <svg class="star" viewBox="0 0 10 10" fill="currentColor"><polygon points="5,1 6.2,3.8 9,3.8 6.9,5.7 7.6,8.5 5,6.9 2.4,8.5 3.1,5.7 1,3.8 3.8,3.8"/></svg>
+            <svg class="star" viewBox="0 0 10 10" fill="currentColor"><polygon points="5,1 6.2,3.8 9,3.8 6.9,5.7 7.6,8.5 5,6.9 2.4,8.5 3.1,5.7 1,3.8 3.8,3.8"/></svg>
+            <svg class="star" viewBox="0 0 10 10" fill="currentColor"><polygon points="5,1 6.2,3.8 9,3.8 6.9,5.7 7.6,8.5 5,6.9 2.4,8.5 3.1,5.7 1,3.8 3.8,3.8"/></svg>
+          </div>
+          <div class="testi-name">박소연</div>
+          <div class="testi-meta">프론트엔드 취업 준비생 // 첫 직장 입사</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+  <div class="cta-tag">INITIATE_SEQUENCE //</div>
+  <h2>지금 설정하면, 이번 주 월요일부터 받을 수 있습니다.</h2>
+  <p class="cta-desc">
+    채용 사이트를 직접 검색하는 데에 쓰던 시간을<br>
+    포트폴리오나 면접 준비에 쓰세요.
+  </p>
+  <a href="login.html" class="btn-cta">무료로 시작하기 →</a>
+  <div class="cta-note">NO_CREDIT_CARD &nbsp;//&nbsp; SETUP_TIME: 30SEC &nbsp;//&nbsp; CANCEL_ANYTIME</div>
+</section>
+
+<!-- FOOTER BAR -->
+<div class="footer-bar">
+  <div class="footer-left">
+    <span>LAT: 37.5665° N</span>
+    <span>LON: 126.9780° E</span>
+    <span>NODE_004</span>
+    <span>TX_PENDING</span>
+  </div>
+  <div>DESIGNED FOR THE FUTURE OF LABOR &nbsp;&nbsp; © 2024 AI_CAREER_LAB</div>
+</div>
+
+<!-- STAR ANIMATION -->
+<script>
+  const canvas = document.getElementById('stars-canvas');
+  const ctx = canvas.getContext('2d');
+
+  let W, H;
+  const STAR_COUNT = 180;
+  const stars = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function randBetween(a, b) { return a + Math.random() * (b - a); }
+
+  function createStar() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: randBetween(0.3, 1.6),
+      speed: randBetween(0.08, 0.35),
+      opacity: randBetween(0.2, 0.9),
+      twinkleSpeed: randBetween(0.005, 0.02),
+      twinkleDir: Math.random() > 0.5 ? 1 : -1,
+    };
+  }
+
+  function init() {
+    resize();
+    stars.length = 0;
+    for (let i = 0; i < STAR_COUNT; i++) stars.push(createStar());
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    for (const s of stars) {
+      // twinkle
+      s.opacity += s.twinkleSpeed * s.twinkleDir;
+      if (s.opacity >= 0.95 || s.opacity <= 0.1) s.twinkleDir *= -1;
+
+      // drift downward slowly
+      s.y += s.speed;
+      if (s.y > H + 4) {
+        s.y = -4;
+        s.x = Math.random() * W;
+      }
+
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${s.opacity})`;
+      ctx.fill();
+    }
+
+    // occasional purple-tinted star
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', () => { resize(); });
+  init();
+  draw();
+</script>
+
+</body>
+</html>

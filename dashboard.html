@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Career Lab — 대시보드</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple: #b44fff;
+      --purple-dim: #7a2fb8;
+      --red: #ff4455;
+      --green: #39ff14;
+      --text: #e0e0e0;
+      --dim: #888;
+      --bg: #06040e;
+    }
+
+    html, body {
+      width: 100%; background: var(--bg);
+      color: var(--text); font-family: 'Noto Sans KR', sans-serif;
+      overflow-x: hidden;
+    }
+
+    #stars-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 48px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(6,4,14,0.9); backdrop-filter: blur(12px);
+    }
+
+    .nav-logo {
+      font-family: 'Share Tech Mono', monospace; font-size: 11px;
+      letter-spacing: 0.12em; color: var(--purple);
+      display: flex; align-items: center; gap: 8px; text-decoration: none;
+    }
+
+    .nav-logo .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--purple); animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .nav-right { display: flex; align-items: center; gap: 20px; }
+
+    .nav-user {
+      font-family: 'Share Tech Mono', monospace; font-size: 10px;
+      letter-spacing: 0.1em; color: var(--dim);
+    }
+
+    .nav-user span { color: #fff; }
+
+    .btn-setup {
+      font-family: 'Share Tech Mono', monospace; font-size: 10px;
+      letter-spacing: 0.12em; padding: 7px 16px;
+      border: 1px solid rgba(180,79,255,0.4); color: var(--purple);
+      background: rgba(180,79,255,0.06); text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .btn-setup:hover { background: rgba(180,79,255,0.14); }
+
+    /* ─── LAYOUT ─── */
+    .layout {
+      position: relative; z-index: 5;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: calc(100vh - 62px);
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      border-right: 1px solid rgba(255,255,255,0.06);
+      padding: 32px 28px;
+    }
+
+    .sidebar-tag {
+      font-family: 'Share Tech Mono', monospace; font-size: 9px;
+      letter-spacing: 0.16em; color: var(--purple); margin-bottom: 20px;
+    }
+
+    .profile-block {
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 18px; margin-bottom: 28px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .profile-row {
+      display: flex; align-items: baseline; gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .profile-key {
+      font-family: 'Share Tech Mono', monospace; font-size: 8px;
+      letter-spacing: 0.12em; color: var(--dim); flex-shrink: 0; width: 52px;
+    }
+
+    .profile-val {
+      font-size: 12px; color: #ccc; word-break: break-all;
+    }
+
+    .profile-stacks {
+      display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;
+    }
+
+    .mini-tag {
+      font-family: 'Share Tech Mono', monospace; font-size: 8px;
+      padding: 3px 7px; border: 1px solid rgba(180,79,255,0.3);
+      color: var(--purple); background: rgba(180,79,255,0.07);
+    }
+
+    .sidebar-stats {
+      display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px;
+    }
+
+    .stat-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .stat-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .stat-key {
+      font-family: 'Share Tech Mono', monospace; font-size: 8px;
+      letter-spacing: 0.1em; color: var(--dim);
+    }
+
+    .stat-val {
+      font-family: 'Share Tech Mono', monospace; font-size: 16px; color: #fff;
+    }
+
+    .stat-val.green { color: var(--green); }
+    .stat-val.purple { color: var(--purple); }
+
+    .next-batch-box {
+      border: 1px solid rgba(180,79,255,0.2);
+      padding: 14px 16px;
+      background: rgba(180,79,255,0.04);
+    }
+
+    .next-batch-label {
+      font-family: 'Share Tech Mono', monospace; font-size: 8px;
+      letter-spacing: 0.14em; color: var(--dim); margin-bottom: 6px;
+    }
+
+    .next-batch-val {
+      font-family: 'Share Tech Mono', monospace; font-size: 12px;
+      color: var(--purple); margin-bottom: 12px;
+    }
+
+    .btn-send-now {
+      width: 100%; padding: 9px;
+      background: transparent;
+      border: 1px solid rgba(180,79,255,0.4);
+      color: var(--purple);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px; letter-spacing: 0.12em;
+      cursor: pointer; transition: all 0.2s;
+    }
+
+    .btn-send-now:hover {
+      background: rgba(180,79,255,0.15);
+      border-color: var(--purple);
+    }
+
+    .btn-send-now:disabled {
+      opacity: 0.4; cursor: not-allowed;
+      background: transparent;
+    }
+
+    /* ─── MAIN CONTENT ─── */
+    .main {
+      padding: 32px 40px;
+    }
+
+    .main-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .main-title {
+      font-family: 'Share Tech Mono', monospace; font-size: 11px;
+      letter-spacing: 0.14em; color: var(--dim);
+    }
+
+    .main-title span { color: #fff; font-size: 14px; }
+
+    .filter-row {
+      display: flex; gap: 8px;
+    }
+
+    .filter-btn {
+      font-family: 'Share Tech Mono', monospace; font-size: 9px;
+      letter-spacing: 0.1em; padding: 6px 14px;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--dim); background: transparent; cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      border-color: rgba(180,79,255,0.4); color: var(--purple);
+      background: rgba(180,79,255,0.06);
+    }
+
+    /* ─── DATE GROUP ─── */
+    .date-group { margin-bottom: 48px; }
+
+    .date-group-header {
+      display: flex; align-items: center; gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .date-group-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px; letter-spacing: 0.14em; color: #fff;
+      white-space: nowrap;
+    }
+
+    .date-group-label span { color: var(--purple); }
+
+    .date-group-line {
+      flex: 1; height: 1px;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .date-group-count {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px; letter-spacing: 0.12em;
+      color: var(--dim); white-space: nowrap;
+    }
+
+    /* ─── JOB CARDS ─── */
+    .job-list { display: flex; flex-direction: column; gap: 16px; }
+
+    .job-card {
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 24px 28px;
+      background: rgba(255,255,255,0.015);
+      position: relative;
+      transition: border-color 0.25s, background 0.25s;
+      cursor: pointer;
+    }
+
+    .job-card:hover {
+      border-color: rgba(180,79,255,0.3);
+      background: rgba(180,79,255,0.03);
+    }
+
+    .job-card::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; background: var(--purple);
+      opacity: 0; transition: opacity 0.25s;
+    }
+
+    .job-card:hover::before { opacity: 1; }
+
+    .job-card-top {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .job-meta { flex: 1; }
+
+    .job-platform {
+      font-family: 'Share Tech Mono', monospace; font-size: 8px;
+      letter-spacing: 0.14em; color: var(--dim); margin-bottom: 6px;
+    }
+
+    .job-platform .saramin  { color: #ff6b35; }
+
+    .job-title {
+      font-size: 15px; font-weight: 700; color: #fff;
+      margin-bottom: 4px; word-break: keep-all;
+    }
+
+    .job-company {
+      font-size: 13px; color: var(--dim);
+    }
+
+    /* SCORE BADGE */
+    .score-wrap { flex-shrink: 0; text-align: right; margin-left: 20px; }
+
+    .score-ring {
+      width: 64px; height: 64px; position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .score-ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+
+    .score-ring .track { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 3; }
+    .score-ring .fill  { fill: none; stroke-width: 3; stroke-linecap: round;
+      stroke-dasharray: 163; transition: stroke-dashoffset 1s ease; }
+
+    .score-num {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 16px; color: #fff; position: relative; z-index: 1;
+    }
+
+    .score-label {
+      font-family: 'Share Tech Mono', monospace; font-size: 8px;
+      letter-spacing: 0.1em; color: var(--dim); margin-top: 4px;
+    }
+
+    /* SUMMARY */
+    .job-summary {
+      border-left: 2px solid rgba(180,79,255,0.2);
+      padding-left: 14px; margin-bottom: 16px;
+    }
+
+    .summary-line {
+      font-size: 12.5px; color: #888; line-height: 1.8; word-break: keep-all;
+    }
+
+    .summary-line strong { color: #bbb; font-weight: 400; }
+
+    /* TAGS */
+    .job-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+
+    .job-tag {
+      font-family: 'Share Tech Mono', monospace; font-size: 9px;
+      padding: 3px 9px;
+      border: 1px solid rgba(255,255,255,0.1); color: #777;
+    }
+
+    .job-tag.match {
+      border-color: rgba(180,79,255,0.35); color: var(--purple);
+      background: rgba(180,79,255,0.07);
+    }
+
+    /* CARD FOOTER */
+    .job-card-footer {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .job-deadline {
+      font-family: 'Share Tech Mono', monospace; font-size: 11px;
+      letter-spacing: 0.1em; color: var(--dim);
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .dday-badge {
+      font-family: 'Share Tech Mono', monospace; font-size: 11px;
+      font-weight: bold; padding: 2px 7px; border-radius: 4px;
+      background: rgba(255,255,255,0.05); color: var(--dim);
+    }
+
+    .dday-badge.soon { background: rgba(255,68,85,0.15); color: var(--red); }
+    .dday-badge.today { background: rgba(255,68,85,0.3); color: var(--red); animation: pulse 1s infinite; }
+    .dday-badge.closed { background: rgba(100,100,100,0.2); color: #555; }
+
+    .job-deadline.urgent { color: var(--red); }
+
+    .btn-apply {
+      font-family: 'Share Tech Mono', monospace; font-size: 10px;
+      letter-spacing: 0.1em; padding: 8px 18px;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #ccc; background: transparent; cursor: pointer;
+      text-decoration: none; transition: all 0.2s;
+    }
+
+    .btn-apply:hover {
+      border-color: var(--purple); color: var(--purple);
+      background: rgba(180,79,255,0.08);
+    }
+
+    .btn-score-detail {
+      font-family: 'Share Tech Mono', monospace; font-size: 10px;
+      letter-spacing: 0.1em; padding: 8px 14px;
+      border: 1px solid rgba(180,79,255,0.3);
+      color: var(--purple); background: transparent; cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-score-detail:hover {
+      background: rgba(180,79,255,0.15);
+      border-color: var(--purple);
+    }
+
+    .card-footer-btns {
+      display: flex; gap: 8px; align-items: center;
+    }
+
+    /* ─── 점수 분석 모달 ─── */
+    .score-modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+
+    .score-modal-overlay.open {
+      opacity: 1; pointer-events: all;
+    }
+
+    .score-modal {
+      width: 400px; max-width: 90vw;
+      background: #0d0a1a;
+      border: 1px solid rgba(180,79,255,0.35);
+      padding: 32px 28px;
+      position: relative;
+    }
+
+    .score-modal-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px; letter-spacing: 0.16em; color: var(--purple);
+      margin-bottom: 8px;
+    }
+
+    .score-modal-job {
+      font-size: 14px; font-weight: 700; color: #fff;
+      margin-bottom: 24px; word-break: keep-all;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 16px;
+    }
+
+    .score-total-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .score-total-label {
+      font-family: 'Share Tech Mono', monospace; font-size: 10px;
+      letter-spacing: 0.1em; color: var(--dim);
+    }
+
+    .score-total-val {
+      font-family: 'Share Tech Mono', monospace; font-size: 28px;
+      color: #fff;
+    }
+
+    .score-total-val span { font-size: 14px; color: var(--dim); }
+
+    .score-breakdown { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+
+    .score-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .score-row-label {
+      font-size: 12px; color: #999;
+    }
+
+    .score-row-bar-wrap {
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .score-row-bar {
+      width: 80px; height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px; overflow: hidden;
+    }
+
+    .score-row-bar-fill {
+      height: 100%; background: var(--purple);
+      border-radius: 2px; transition: width 0.6s ease;
+    }
+
+    .score-row-val {
+      font-family: 'Share Tech Mono', monospace; font-size: 12px;
+      color: #fff; width: 36px; text-align: right;
+    }
+
+    .score-matched-skills {
+      padding: 10px 14px;
+      border: 1px solid rgba(180,79,255,0.2);
+      background: rgba(180,79,255,0.04);
+      margin-bottom: 20px;
+    }
+
+    .score-matched-label {
+      font-family: 'Share Tech Mono', monospace; font-size: 9px;
+      letter-spacing: 0.12em; color: var(--dim); margin-bottom: 8px;
+    }
+
+    .score-matched-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .btn-modal-close {
+      width: 100%; padding: 10px;
+      font-family: 'Share Tech Mono', monospace; font-size: 10px;
+      letter-spacing: 0.12em;
+      border: 1px solid rgba(255,255,255,0.1); color: var(--dim);
+      background: transparent; cursor: pointer; transition: all 0.2s;
+    }
+
+    .btn-modal-close:hover {
+      border-color: rgba(255,255,255,0.2); color: #fff;
+    }
+
+    /* ─── CARD EXPAND ─── */
+    .job-card .job-summary,
+    .job-card .job-tags { display: none; }
+
+    .job-card.expanded .job-summary,
+    .job-card.expanded .job-tags { display: block; }
+
+    .job-card.expanded .job-tags { display: flex; }
+
+    .job-card.expanded {
+      border-color: rgba(180,79,255,0.3);
+      background: rgba(180,79,255,0.03);
+    }
+
+    .job-card.expanded::before { opacity: 1; }
+
+    .expand-icon {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px; color: var(--dim);
+      margin-left: 8px; transition: transform 0.2s;
+      display: inline-block;
+    }
+
+    .job-card.expanded .expand-icon { transform: rotate(180deg); color: var(--purple); }
+
+    /* ─── EMPTY / LOADING ─── */
+    .empty-state {
+      text-align: center; padding: 100px 0;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px; letter-spacing: 0.14em;
+      color: var(--dim); line-height: 2.8;
+    }
+
+    .empty-state .empty-icon {
+      font-size: 32px; margin-bottom: 16px; opacity: 0.3;
+    }
+
+    .empty-state .empty-title {
+      font-size: 13px; color: rgba(255,255,255,0.3);
+      margin-bottom: 8px;
+    }
+
+    .empty-state .empty-sub { font-size: 9px; }
+
+    /* ─── FOOTER ─── */
+    .footer-bar {
+      position: relative; z-index: 5;
+      display: flex; justify-content: space-between;
+      padding: 14px 48px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px; letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.25);
+    }
+
+    /* ─── MOBILE RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+
+      .nav-user { display: none; }
+
+      .btn-setup { padding: 6px 10px; font-size: 9px; }
+
+      .layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+      }
+
+      .sidebar {
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        padding: 20px;
+      }
+
+      .sidebar-tag { margin-bottom: 12px; }
+
+      .profile-block { margin-bottom: 16px; }
+
+      .sidebar-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        margin-bottom: 16px;
+      }
+
+      .stat-row {
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+      }
+
+      .stat-row:nth-child(odd) { padding-right: 16px; }
+
+      .next-batch-box { margin-top: 4px; }
+
+      .main { padding: 20px 16px; }
+
+      .main-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .filter-row { flex-wrap: wrap; }
+
+      .job-card { padding: 16px; }
+
+      .job-card-top { gap: 12px; }
+
+      .score-ring { width: 52px; height: 52px; }
+      .score-num { font-size: 13px; }
+
+      .job-title { font-size: 13px; }
+      .job-company { font-size: 12px; }
+
+      .job-card-footer { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+      .card-footer-btns { flex-direction: column; width: 100%; }
+
+      .btn-apply, .btn-score-detail { width: 100%; text-align: center; }
+
+      .footer-bar { padding: 12px 20px; flex-direction: column; gap: 4px; text-align: center; }
+
+      .date-group-label { font-size: 10px; }
+    }
+
+    @media (max-width: 480px) {
+      .filter-row { gap: 6px; }
+      .filter-btn { padding: 5px 10px; font-size: 8px; }
+    }
+
+    .footer-left { display: flex; gap: 28px; }
+
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        to bottom, transparent, transparent 2px,
+        rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px
+      );
+      pointer-events: none; z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="dot"></div>
+    AI_CAREER_LAB
+  </a>
+  <div class="nav-right">
+    <div class="nav-user">USER: <span id="navUserName">—</span></div>
+    <a href="admin.html" id="adminBtn" class="btn-setup" style="display:none;color:#ffd700;border-color:rgba(255,215,0,0.4)">관리자</a>
+    <a href="setup.html" class="btn-setup">조건 수정</a>
+    <button class="btn-setup" id="logoutBtn" style="cursor:pointer;border:none" onclick="handleLogout()">로그아웃</button>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar">
+    <div class="sidebar-tag">MY_PROFILE //</div>
+
+    <div class="profile-block">
+      <div class="profile-row">
+        <span class="profile-key">JOB</span>
+        <span class="profile-val" id="profileJob">—</span>
+      </div>
+      <div class="profile-row">
+        <span class="profile-key">REGION</span>
+        <span class="profile-val" id="profileRegion">—</span>
+      </div>
+      <div class="profile-row">
+        <span class="profile-key">LEVEL</span>
+        <span class="profile-val" id="profileCareer">—</span>
+      </div>
+      <div class="profile-row" style="align-items:flex-start">
+        <span class="profile-key" style="margin-top:3px">STACK</span>
+        <div class="profile-stacks" id="profileStacks"></div>
+      </div>
+    </div>
+
+    <div class="sidebar-stats">
+      <div class="stat-row">
+        <span class="stat-key">최신 추천</span>
+        <span class="stat-val purple" id="statThisWeek">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">평균 매칭 점수</span>
+        <span class="stat-val" id="statAvgScore">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">누적 추천 횟수</span>
+        <span class="stat-val" id="statTotalRounds">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">총 추천 공고</span>
+        <span class="stat-val green" id="statTotalJobs">—</span>
+      </div>
+    </div>
+
+    <div class="next-batch-box">
+      <div class="next-batch-label">NEXT_BATCH</div>
+      <div class="next-batch-val" id="nextBatchVal">계산 중...</div>
+      <button class="btn-send-now" id="sendNowBtn" onclick="handleSendNow()">지금받기</button>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN ─── -->
+  <main class="main">
+    <div class="main-header">
+      <div class="main-title">추천 공고 히스토리 &nbsp;<span id="totalCount">—</span></div>
+      <div class="filter-row">
+        <button class="filter-btn active" data-filter="all">전체</button>
+        <button class="filter-btn" data-filter="saramin">사람인</button>
+        <button class="filter-btn" data-filter="90">90점+</button>
+      </div>
+    </div>
+
+    <div id="recommendationsContainer"></div>
+  </main>
+</div>
+
+<div class="footer-bar">
+  <div class="footer-left"><span>NODE_004</span><span>LAST_SYNC: MON 09:00</span></div>
+  <div>© 2024 AI_CAREER_LAB</div>
+</div>
+
+<!-- ─── 점수 분석 모달 ─── -->
+<div class="score-modal-overlay" id="scoreModal" onclick="closeScoreModal(event)">
+  <div class="score-modal">
+    <div class="score-modal-title">// 매칭점수 분석</div>
+    <div class="score-modal-job" id="modalJobTitle">—</div>
+
+    <div class="score-total-row">
+      <div class="score-total-label">총 적합도</div>
+      <div class="score-total-val" id="modalTotalScore">—<span>점</span></div>
+    </div>
+
+    <div class="score-breakdown">
+      <div class="score-row">
+        <div class="score-row-label">기본 점수</div>
+        <div class="score-row-bar-wrap">
+          <div class="score-row-bar"><div class="score-row-bar-fill" id="barBase" style="width:0%"></div></div>
+          <div class="score-row-val" id="valBase">—</div>
+        </div>
+      </div>
+      <div class="score-row">
+        <div class="score-row-label">스킬 매칭 점수</div>
+        <div class="score-row-bar-wrap">
+          <div class="score-row-bar"><div class="score-row-bar-fill" id="barSkill" style="width:0%"></div></div>
+          <div class="score-row-val" id="valSkill">—</div>
+        </div>
+      </div>
+      <div class="score-row">
+        <div class="score-row-label">태그 매칭 점수</div>
+        <div class="score-row-bar-wrap">
+          <div class="score-row-bar"><div class="score-row-bar-fill" id="barTag" style="width:0%"></div></div>
+          <div class="score-row-val" id="valTag">—</div>
+        </div>
+      </div>
+      <div class="score-row">
+        <div class="score-row-label">직접 매칭 보너스</div>
+        <div class="score-row-bar-wrap">
+          <div class="score-row-bar"><div class="score-row-bar-fill" id="barBonus" style="width:0%"></div></div>
+          <div class="score-row-val" id="valBonus">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="score-matched-skills" id="matchedSkillsSection">
+      <div class="score-matched-label">MATCHED_SKILLS</div>
+      <div class="score-matched-tags" id="matchedSkillsTags"></div>
+    </div>
+
+    <button class="btn-modal-close" onclick="closeScoreModal()">닫기</button>
+  </div>
+</div>
+
+<script>
+  /* ── STARS ── */
+  const canvas = document.getElementById('stars-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H; const stars = [];
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+  function rand(a,b){return a+Math.random()*(b-a);}
+  function createStar(){return{x:Math.random()*W,y:Math.random()*H,r:rand(0.3,1.6),speed:rand(0.08,0.35),opacity:rand(0.2,0.9),ts:rand(0.005,0.02),td:Math.random()>.5?1:-1};}
+  function initStars(){resize();stars.length=0;for(let i=0;i<180;i++)stars.push(createStar());}
+  function drawStars(){ctx.clearRect(0,0,W,H);for(const s of stars){s.opacity+=s.ts*s.td;if(s.opacity>=.95||s.opacity<=.1)s.td*=-1;s.y+=s.speed;if(s.y>H+4){s.y=-4;s.x=Math.random()*W;}ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${s.opacity})`;ctx.fill();}requestAnimationFrame(drawStars);}
+  window.addEventListener('resize',resize);initStars();drawStars();
+
+  const API = 'https://aicareerlab.duckdns.org';
+  let recommendations = [];
+  const container = document.getElementById('recommendationsContainer');
+
+  /* ── 초기 로드 ── */
+  async function init() {
+    // 1. 로그인 확인
+    let user;
+    try {
+      const res = await fetch(`${API}/api/auth/me`, { credentials: 'include' });
+      if (!res.ok) { window.location.href = 'login.html'; return; }
+      user = await res.json();
+    } catch (e) { window.location.href = 'login.html'; return; }
+
+    document.getElementById('navUserName').textContent = user.name || user.email;
+
+    // 관리자 버튼 (내 계정만)
+    if (user.email === 'soo5586068@gmail.com') {
+      document.getElementById('adminBtn').style.display = 'inline-block';
+    }
+
+    // 2. 프로필 로드
+    try {
+      const pRes = await fetch(`${API}/api/profile`, { credentials: 'include' });
+      if (pRes.ok) {
+        const profile = await pRes.json();
+        renderProfile(profile);
+      }
+    } catch (e) {}
+
+    // 3. 추천 공고 로드
+    try {
+      const rRes = await fetch(`${API}/api/recommendations`, { credentials: 'include' });
+      if (rRes.ok) {
+        recommendations = await rRes.json();
+      }
+    } catch (e) {}
+
+    updateStats();
+    renderAll();
+  }
+
+  /* ── 프로필 렌더링 ── */
+  function renderProfile(profile) {
+    const jobs = typeof profile.jobs === 'string' ? JSON.parse(profile.jobs || '[]') : (profile.jobs || []);
+    const stacks = typeof profile.stacks === 'string' ? JSON.parse(profile.stacks || '[]') : (profile.stacks || []);
+
+    if (jobs.length) document.getElementById('profileJob').textContent = jobs[0];
+    if (profile.region) document.getElementById('profileRegion').textContent = profile.region;
+    if (profile.career) document.getElementById('profileCareer').textContent = profile.career;
+    if (stacks.length)
+      document.getElementById('profileStacks').innerHTML = stacks.map(s => `<span class="mini-tag">${s}</span>`).join('');
+  }
+
+  /* ── 로그아웃 ── */
+  async function handleLogout() {
+    try {
+      await fetch(`${API}/api/auth/logout`, { method: 'POST', credentials: 'include' });
+    } catch (e) {}
+    window.location.href = 'index.html';
+  }
+  let currentFilter = 'all';
+
+  function scoreToOffset(score) {
+    // 원 둘레 163, 100점 = offset 0, 0점 = offset 163
+    return Math.round(163 - (score / 100) * 163);
+  }
+
+  function renderDday(deadlineStr) {
+    if (!deadlineStr) return '';
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dead  = new Date(deadlineStr); dead.setHours(0,0,0,0);
+    const diff  = Math.round((dead - today) / (1000 * 60 * 60 * 24));
+    if (diff < 0)  return `<span class="dday-badge closed">마감</span> <span>${deadlineStr}</span>`;
+    if (diff === 0) return `<span class="dday-badge today">D-DAY</span> <span>${deadlineStr}</span>`;
+    if (diff <= 7)  return `<span class="dday-badge soon">D-${diff}</span> <span>${deadlineStr}</span>`;
+    return `<span class="dday-badge">D-${diff}</span> <span>${deadlineStr}</span>`;
+  }
+
+  function renderCard(job) {
+    // tags는 백엔드에서 문자열로 오므로 파싱
+    let tagList = [];
+    if (Array.isArray(job.tags)) {
+      tagList = job.tags;
+    } else if (typeof job.tags === 'string' && job.tags) {
+      tagList = job.tags.split(',').map(t => t.trim()).filter(Boolean);
+    }
+    const tags = tagList.map(t =>
+      typeof t === 'object'
+        ? `<span class="job-tag ${t.match ? 'match' : ''}">${t.name}</span>`
+        : `<span class="job-tag">${t}</span>`
+    ).join('');
+
+    const platformMap = { saramin: ['saramin', 'SARAMIN'] };
+    const [platformClass, platformLabel] = platformMap[job.platform] || ['saramin', job.platform?.toUpperCase() || ''];
+    const deadlineClass = job.urgent ? 'job-deadline urgent' : 'job-deadline';
+
+    // 점수 분석용 데이터 직렬화
+    const scoreData = encodeURIComponent(JSON.stringify({
+      title: job.title,
+      totalScore: job.score,
+      baseScore: job.baseScore || 78,
+      skillScore: job.skillScore || 0,
+      tagScore: job.tagScore || 0,
+      bonusScore: job.bonusScore || 0,
+      matchedSkills: job.matchedSkills || ''
+    }));
+
+    return `
+      <div class="job-card" data-platform="${job.platform}" data-score="${job.score}" onclick="toggleCard(this)">
+        <div class="job-card-top">
+          <div class="job-meta">
+            <div class="job-platform">
+              <span class="${platformClass}">${platformLabel}</span> &nbsp;//&nbsp; ${job.collectedAt || ''} 수집
+            </div>
+            <div class="job-title">${job.title} <span class="expand-icon">▾</span></div>
+            <div class="job-company">${job.company} · ${job.location}</div>
+          </div>
+          <div class="score-wrap">
+            <div class="score-ring">
+              <svg viewBox="0 0 64 64">
+                <circle class="track" cx="32" cy="32" r="26"/>
+                <circle class="fill" cx="32" cy="32" r="26" stroke="#b44fff" style="stroke-dashoffset:${scoreToOffset(job.score)}"/>
+              </svg>
+              <span class="score-num">${job.score}</span>
+            </div>
+            <div class="score-label">MATCH</div>
+          </div>
+        </div>
+        <div class="job-summary">
+          <div class="summary-line"><strong>지원자격</strong> ${job.qualifications || '—'}</div>
+          <div class="summary-line"><strong>요구사항</strong> ${job.requirements || '—'}</div>
+          <div class="summary-line"><strong>우대사항</strong> ${job.preferred || '—'}</div>
+          <div class="summary-line"><strong>학&nbsp;&nbsp;&nbsp;&nbsp;력</strong> ${job.education || '학력무관'}</div>
+          <div class="summary-line"><strong>연&nbsp;&nbsp;&nbsp;&nbsp;봉</strong> ${job.salary || '회사내규에 따름'}</div>
+        </div>
+        <div class="job-tags">${tags}</div>
+        <div class="job-card-footer">
+          <div class="${deadlineClass}">${renderDday(job.deadline)}</div>
+          <div class="card-footer-btns">
+            <button class="btn-score-detail" onclick="event.stopPropagation(); openScoreModal('${scoreData}')">매칭점수 분석하기</button>
+            <a href="${job.url || '#'}" class="btn-apply" target="_blank" onclick="event.stopPropagation()">공고 보러가기 →</a>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderAll() {
+    container.innerHTML = '';
+
+    if (!recommendations.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <div class="empty-title">현재 추천받은 공고가 없습니다</div>
+          <div class="empty-sub">
+            매주 월요일 오전 09:00에 맞춤 공고 10건이 발송됩니다<br>
+            이메일과 대시보드에서 동시에 확인할 수 있어요
+          </div>
+        </div>`;
+      document.getElementById('totalCount').textContent = '0건';
+      return;
+    }
+
+    let totalJobs = 0;
+
+    recommendations.forEach(group => {
+      const filtered = group.jobs.filter(job => {
+        if (currentFilter === 'saramin')  return job.platform === 'saramin';
+        if (currentFilter === '90') return job.score >= 90;
+        return true;
+      });
+
+      if (!filtered.length) return;
+      totalJobs += filtered.length;
+
+      const date = new Date(group.date);
+      const dateLabel = `${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일 (월)`;
+
+      const groupEl = document.createElement('div');
+      groupEl.className = 'date-group';
+      groupEl.innerHTML = `
+        <div class="date-group-header">
+          <div class="date-group-label"><span>//</span> ${dateLabel}</div>
+          <div class="date-group-line"></div>
+          <div class="date-group-count">${filtered.length}건</div>
+        </div>
+        <div class="job-list">${filtered.map(renderCard).join('')}</div>`;
+      container.appendChild(groupEl);
+    });
+
+    document.getElementById('totalCount').textContent = totalJobs + '건';
+  }
+
+  /* ── 카드 펼치기 ── */
+  function toggleCard(card) {
+    card.classList.toggle('expanded');
+  }
+
+  /* ── 사이드바 통계 동적 계산 ── */
+  function updateStats() {
+    const totalRounds = recommendations.length;
+    const totalJobs = recommendations.reduce((acc, g) => acc + g.jobs.length, 0);
+    const latest = recommendations[0];
+    const thisWeekCount = latest ? latest.jobs.length : 0;
+    const avgScore = latest && latest.jobs.length
+      ? Math.round(latest.jobs.reduce((s, j) => s + j.score, 0) / latest.jobs.length)
+      : null;
+
+    document.getElementById('statThisWeek').textContent = thisWeekCount ? thisWeekCount + '건' : '—';
+    document.getElementById('statAvgScore').textContent = avgScore ? avgScore + '점' : '—';
+    document.getElementById('statTotalRounds').textContent = totalRounds ? totalRounds + '회' : '—';
+    document.getElementById('statTotalJobs').textContent = totalJobs ? totalJobs + '건' : '—';
+  }
+
+  /* ── NEXT_BATCH 카운트다운 ── */
+  function updateNextBatch() {
+    const now = new Date();
+    const day = now.getDay(); // 0=일, 1=월
+    const daysUntil = day === 1 ? 7 : (8 - day) % 7;
+    const next = new Date(now);
+    next.setDate(now.getDate() + daysUntil);
+    next.setHours(9, 0, 0, 0);
+
+    const diff = next - now;
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+    const label = d > 0 ? `D-${d} (${h}시간 ${m}분 후)` : `${h}시간 ${m}분 후`;
+    document.getElementById('nextBatchVal').textContent = label;
+  }
+
+  /* ── 지금받기 ── */
+  async function handleSendNow() {
+    const btn = document.getElementById('sendNowBtn');
+    btn.disabled = true;
+    btn.textContent = '요청 중...';
+
+    try {
+      const res = await fetch(`${API}/api/recommendations/send-now`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      const msg = await res.text();
+      if (res.ok) {
+        btn.textContent = msg.includes('건') ? msg : '완료 ✓';
+        alert(msg);
+        const rRes = await fetch(`${API}/api/recommendations`, { credentials: 'include' });
+        if (rRes.ok) {
+          recommendations = await rRes.json();
+          updateStats();
+          renderAll();
+        }
+      } else {
+        btn.textContent = '오류 발생';
+        alert('오류: ' + msg);
+      }
+    } catch (e) {
+      btn.textContent = '연결 실패';
+    }
+
+    setTimeout(() => {
+      btn.textContent = '지금받기';
+      btn.disabled = false;
+    }, 3000);
+  }
+
+  /* ── 점수 분석 모달 ── */
+  function openScoreModal(encodedData) {
+    const data = JSON.parse(decodeURIComponent(encodedData));
+
+    document.getElementById('modalJobTitle').textContent = data.title;
+    document.getElementById('modalTotalScore').innerHTML = `${data.totalScore}<span>점</span>`;
+
+    const breakdown = data.skillScore + data.tagScore + data.bonusScore;
+    const isOldData = breakdown === 0 && data.totalScore > data.baseScore;
+
+    if (isOldData) {
+      // 구 데이터: 세부 점수 없음 → 차이를 기타로 표시
+      const extra = data.totalScore - data.baseScore;
+      document.getElementById('valBase').textContent = data.baseScore + '점';
+      document.getElementById('valSkill').textContent = '—';
+      document.getElementById('valTag').textContent = '—';
+      document.getElementById('valBonus').textContent = extra + '점';
+      document.getElementById('barBase').style.width = (data.baseScore / data.totalScore * 100) + '%';
+      document.getElementById('barSkill').style.width = '0%';
+      document.getElementById('barTag').style.width = '0%';
+      document.getElementById('barBonus').style.width = (extra / data.totalScore * 100) + '%';
+
+      // 라벨 변경
+      document.querySelector('[id="valBonus"]').closest('.score-row').querySelector('.score-row-label').textContent = '매칭 점수 (통합)';
+
+      // 구 데이터 안내
+      document.getElementById('matchedSkillsSection').style.display = 'block';
+      document.getElementById('matchedSkillsSection').style.borderColor = 'rgba(255,255,255,0.1)';
+      document.getElementById('matchedSkillsSection').style.background = 'rgba(255,255,255,0.02)';
+      document.querySelector('.score-matched-label').textContent = 'INFO';
+      document.getElementById('matchedSkillsTags').innerHTML =
+        '<span style="font-size:11px;color:#888;">이전 추천 데이터입니다. "지금받기"로 새 추천을 받으면 세부 점수를 확인할 수 있습니다.</span>';
+    } else {
+      document.getElementById('valBase').textContent = data.baseScore + '점';
+      document.getElementById('valSkill').textContent = data.skillScore + '점';
+      document.getElementById('valTag').textContent = data.tagScore + '점';
+      document.getElementById('valBonus').textContent = data.bonusScore + '점';
+
+      document.getElementById('barBase').style.width = (data.baseScore / 98 * 100) + '%';
+      document.getElementById('barSkill').style.width = (data.skillScore / 12 * 100) + '%';
+      document.getElementById('barTag').style.width = (data.tagScore / 5 * 100) + '%';
+      document.getElementById('barBonus').style.width = (data.bonusScore / 3 * 100) + '%';
+
+      document.querySelector('[id="valBonus"]').closest('.score-row').querySelector('.score-row-label').textContent = '직접 매칭 보너스';
+
+      // 매칭 스킬 태그
+      const tagsEl = document.getElementById('matchedSkillsTags');
+      const section = document.getElementById('matchedSkillsSection');
+      section.style.borderColor = '';
+      section.style.background = '';
+      document.querySelector('.score-matched-label').textContent = 'MATCHED_SKILLS';
+
+      if (data.matchedSkills && data.matchedSkills.trim()) {
+        tagsEl.innerHTML = data.matchedSkills.split(',').map(s => s.trim()).filter(Boolean)
+          .map(s => `<span class="mini-tag">${s}</span>`).join('');
+        section.style.display = 'block';
+      } else {
+        section.style.display = 'none';
+      }
+    }
+
+    document.getElementById('scoreModal').classList.add('open');
+  }
+
+  function closeScoreModal(e) {
+    if (e && e.target !== document.getElementById('scoreModal')) return;
+    document.getElementById('scoreModal').classList.remove('open');
+  }
+
+  updateNextBatch();
+  setInterval(updateNextBatch, 60000); // 1분마다 갱신
+  init();
+
+  /* ── 필터 탭 ── */
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderAll();
+    });
+  });
+</script>
+</body>
+</html>
