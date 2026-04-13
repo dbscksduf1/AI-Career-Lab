@@ -246,21 +246,50 @@ sudo systemctl restart aicareerlab
 
 ## 포트폴리오 / 이력서용 정리
 
-### 문제 해결 경험
+### 문제 해결 경험 (수치 포함)
 
-| 문제 | 원인 | 해결 |
-|------|------|------|
-| 중복 추천 발생 | URL 변형 공고가 동일 공고로 재추천됨 | ID + URL 이중 필터 + DB 유니크 제약 |
-| 점수 세부 항목 전체 0 표시 | 기존 추천 데이터에 세부 점수 미저장 | ScoreDetail DTO 분리, 배치 Writer에서 항목별 저장 / 구 데이터 감지(isOldData) 분기 처리 |
-| 대시보드 N+1 쿼리 | Lazy 로딩으로 추천 N건 → 공고 N번 SELECT | JOIN FETCH 쿼리로 1회 조회 |
-| 관리자 유저 목록 N+1 | 유저마다 프로필/추천수 개별 쿼리 (2N+1) | 프로필 일괄 조회 + GROUP BY 추천수 1쿼리로 통합 |
-| 배치 공고 중복 로딩 | 유저마다 findAll() 호출 | @StepScope 팩토리에서 1회 로딩 후 클로저 재사용 |
-| 크롤러 URL 중복체크 N번 | 공고마다 existsByUrl() 개별 SELECT | IN 쿼리로 기존 URL 일괄 조회 후 필터링 |
-| JS 렌더링 사이트 크롤링 불가 | Jsoup은 정적 HTML만 파싱 가능 | 서버사이드 렌더링 사이트(사람인)만 유지 |
-| 크롤링 API 타임아웃 | 동기 처리로 HTTP 요청 타임아웃 발생 | 백그라운드 Thread 비동기 실행으로 즉시 응답 |
-| 크로스 도메인 세션 쿠키 차단 | Vercel↔EC2 다른 도메인, SameSite 기본값이 Lax | TomcatContextCustomizer로 SameSite=None; Secure 설정 |
-| Nginx 뒤에서 OAuth2 state 불일치 | Spring Boot가 HTTP로 인식해 state 쿠키 설정 오류 | forward-headers-strategy: native로 X-Forwarded-Proto 인식 |
-| EC2 SSH 매우 느려짐 | Java 프로세스 2개 이상 동시 실행으로 메모리 고갈 | 스왑 2GB 추가 + JVM 힙 제한(-Xmx400m) |
+| 문제 | 원인 | 해결 | 수치 |
+|------|------|------|------|
+| 대시보드 N+1 쿼리 | Lazy 로딩으로 추천 N건 → 공고 N번 SELECT | JOIN FETCH 쿼리로 1회 조회 | 쿼리 수 N+1 → 1 (추천 50건 기준 51 → 1, 98% 감소) |
+| 관리자 유저 목록 N+1 | 유저마다 프로필/추천수 개별 쿼리 (2N+1) | 프로필 일괄 조회 + GROUP BY 추천수 1쿼리 | 쿼리 수 2N+1 → 3 (유저 100명 기준 201 → 3, 98.5% 감소) |
+| 크롤러 URL 중복체크 N번 | 공고마다 existsByUrl() 개별 SELECT | IN 쿼리로 기존 URL 일괄 조회 | 쿼리 수 N → 1 (공고 500건 기준 500 → 1, 99.8% 감소) |
+| 배치 공고 중복 로딩 | 유저마다 findAll() 호출 | @StepScope에서 1회 로딩 후 재사용 | DB 조회 N → 1 (유저 10명 기준 10 → 1) |
+| 동시 사용자 50명 한계 | Nginx worker_connections 768, ulimit 1024, SSL 캐시 없음 → TLS 핸드쉐이크 과부하 | worker_connections 4096, ulimit 65536, SSL session cache 20MB, epoll 설정 | 안정 동시 사용자 50명 → 200명, 성공률 99.98%, TPS 35 req/s |
+| 크롤링 API 타임아웃 | 동기 처리로 HTTP 요청 타임아웃 발생 | 백그라운드 Thread 비동기 실행 | 응답 대기 60s+ → 즉시 응답 |
+| 중복 추천 발생 | URL 변형 공고가 동일 공고로 재추천됨 | ID + URL 이중 필터 + DB 유니크 제약 | - |
+| 크로스 도메인 세션 쿠키 차단 | Vercel↔EC2 다른 도메인, SameSite 기본값이 Lax | TomcatContextCustomizer로 SameSite=None; Secure 설정 | - |
+| Nginx 뒤에서 OAuth2 state 불일치 | Spring Boot가 HTTP로 인식해 state 쿠키 설정 오류 | forward-headers-strategy: native로 X-Forwarded-Proto 인식 | - |
+| EC2 SSH 매우 느려짐 | Java 프로세스 2개 이상 동시 실행으로 메모리 고갈 | 스왑 2GB 추가 + JVM 힙 제한(-Xmx400m) | - |
+| JS 렌더링 사이트 크롤링 불가 | Jsoup은 정적 HTML만 파싱 가능 | SSR 사이트(사람인)만 유지 | - |
+
+### 부하 테스트 결과 (k6)
+- **테스트 도구**: k6
+- **시나리오**: 0 → 30 → 100 → 200명 단계적 증가 (총 4분)
+- **개선 전 문제**: worker_connections 768 + ulimit 1024로 50명 초과 시 `tls: bad record MAC` 에러 다수 발생
+- **개선 내용**:
+  - Nginx `worker_connections`: 768 → 4096 (5.3배)
+  - 시스템 파일 디스크립터(`ulimit -n`): 1024 → 65536 (64배)
+  - SSL 세션 캐시 추가: `ssl_session_cache shared:SSL:20m` (TLS 재핸드쉐이크 제거)
+  - `multi_accept on` + `use epoll` (I/O 다중화 최적화)
+- **개선 후 결과**:
+
+| 항목 | 수치 |
+|------|------|
+| 최대 동시 사용자 | 200명 |
+| 총 요청 수 | 8,518건 |
+| TPS | 35.03 req/s |
+| 성공률 | 99.98% |
+| 평균 응답시간 | 1,888ms |
+| 중앙값 | 1,678ms |
+| P90 | 3,740ms |
+| P95 | 4,278ms |
+
+### 이력서용 성과 문장
+- **N+1 쿼리 최적화**: JOIN FETCH 도입으로 추천 조회 쿼리 수 98% 감소 (51건 → 1건)
+- **관리자 API 최적화**: 일괄 조회 쿼리로 DB 요청 98.5% 감소 (201건 → 3건)
+- **크롤러 최적화**: IN 쿼리 일괄 중복 체크로 DB 요청 99.8% 감소 (500건 → 1건)
+- **Nginx 튜닝**: worker_connections, SSL 세션 캐시, epoll 설정으로 안정 동시 처리 사용자 50명 → 200명 (4배), 성공률 99.98%
+- **크롤링 비동기화**: 동기 처리 대비 응답 대기 60초 이상 → 즉시 응답
 
 ### 핵심 구현 포인트 (면접용)
 - Spring Batch 청크 기반 파이프라인 설계 (Reader → Processor → Writer)
@@ -273,6 +302,7 @@ sudo systemctl restart aicareerlab
 - Nginx 리버스 프록시 환경에서 forward-headers-strategy로 HTTPS 인식
 - AWS EC2 t3.micro에 Spring Boot + MySQL 단일 서버 배포 (비용 최소화)
 - 스왑 메모리 + JVM 힙 제한으로 1GB RAM 서버 안정화
+- k6 부하 테스트로 병목 분석 및 Nginx 튜닝으로 처리 용량 4배 향상
 
 ### 사용 기술 전체 목록 (이력서용)
 **Backend**: Java 21, Spring Boot 3.2.3, Spring Batch, Spring Security, Spring Data JPA, Hibernate, MySQL, Jsoup, JavaMailSender, Springdoc OpenAPI, Gradle
