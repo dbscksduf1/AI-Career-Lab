@@ -123,9 +123,8 @@ public class AdminController {
         if (!isAdmin(session)) return ResponseEntity.status(403).build();
 
         log.info("관리자 크롤링 수동 실행");
-        crawlerService.crawlAll();
-        long total = jobPostingRepository.count();
-        return ResponseEntity.ok("크롤링 완료. 총 공고: " + total + "건");
+        new Thread(crawlerService::crawlAll).start();
+        return ResponseEntity.ok("크롤링 시작됨 (백그라운드 실행 중)");
     }
 
     // ── 배치 수동 실행 (전체 유저) ──────────────────────────

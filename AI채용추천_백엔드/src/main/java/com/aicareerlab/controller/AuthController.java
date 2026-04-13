@@ -67,6 +67,6 @@ public class AuthController {
                 session.setAttribute("userId", user.getId())
             );
         }
-        response.sendRedirect("http://localhost:5500/AI%EC%B1%84%EC%9A%A9%EC%B6%94%EC%B2%9C_%ED%94%84%EB%A1%A0%ED%8A%B8/dashboard.html");
+        response.sendRedirect("https://ai-career-lab-rho.vercel.app/dashboard.html");
     }
 }
